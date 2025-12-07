@@ -16,7 +16,6 @@ import java.util.Map;
 @RequestMapping("/query")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class QueryController {
 
     private final LlmNlpToSqlService llmNlpToSqlService;
