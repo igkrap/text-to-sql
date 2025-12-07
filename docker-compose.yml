@@ -46,7 +46,7 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_MODEL: llama3.2:3b
+      OLLAMA_MODEL: gemma3:12b
     ports:
       - "8080:8080"
     depends_on:
