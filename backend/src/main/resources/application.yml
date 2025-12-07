@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: nlp-sql-query-system
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/manufacturing_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    com.manufacturing: DEBUG
+    org.hibernate.SQL: DEBUG
