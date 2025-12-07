@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.manufacturing.nlpsql.mapper.ProductionOrderMapper">
+
+    <resultMap id="ProductionOrderResultMap" type="com.manufacturing.nlpsql.model.ProductionOrder">
+        <id property="id" column="id"/>
+        <result property="orderNumber" column="order_number"/>
+        <result property="productId" column="product_id"/>
+        <result property="quantity" column="quantity"/>
+        <result property="status" column="status"/>
+        <result property="startDate" column="start_date"/>
+        <result property="dueDate" column="due_date"/>
+        <result property="completedDate" column="completed_date"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="productName" column="product_name"/>
+        <result property="productCode" column="product_code"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="ProductionOrderResultMap">
+        SELECT po.*, p.product_name, p.product_code
+        FROM production_orders po
+        LEFT JOIN products p ON po.product_id = p.id
+        ORDER BY po.id
+    </select>
+
+    <select id="findById" resultMap="ProductionOrderResultMap">
+        SELECT po.*, p.product_name, p.product_code
+        FROM production_orders po
+        LEFT JOIN products p ON po.product_id = p.id
+        WHERE po.id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO production_orders (order_number, product_id, quantity, status, start_date, due_date, completed_date, created_at, updated_at)
+        VALUES (#{orderNumber}, #{productId}, #{quantity}, #{status}, #{startDate}, #{dueDate}, #{completedDate}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE production_orders
+        SET order_number = #{orderNumber},
+            product_id = #{productId},
+            quantity = #{quantity},
+            status = #{status},
+            start_date = #{startDate},
+            due_date = #{dueDate},
+            completed_date = #{completedDate},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM production_orders WHERE id = #{id}
+    </delete>
+
+</mapper>

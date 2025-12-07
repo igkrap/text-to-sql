@@ -1,26 +1,30 @@
-# 🏭 제조 NLP SQL 질의 시스템
+# 🏭 제조 NLP SQL 질의 시스템 (로컬 LLM + MyBatis)
 
-Spring Boot, React, PostgreSQL을 이용한 자연어 기반 제조 데이터베이스 질의 시스템
+Spring Boot, React, PostgreSQL, **로컬 LLM(Ollama)**, **MyBatis**를 이용한 자연어 기반 제조 데이터베이스 질의 시스템
 
 ## 📋 프로젝트 개요
 
-이 프로젝트는 제조 환경에서 사용자가 자연어로 데이터베이스를 질의할 수 있는 시스템입니다. 복잡한 SQL을 몰라도 "재고가 부족한 제품은?" 같은 자연어 질문으로 데이터를 조회할 수 있습니다.
+이 프로젝트는 **로컬에서 실행되는 LLM(Ollama)**을 사용하여 제조 환경에서 사용자가 자연어로 데이터베이스를 질의할 수 있는 시스템입니다. 클라우드 API 없이 완전히 로컬 환경에서 동작하며, MyBatis를 사용하여 데이터베이스를 관리합니다.
 
 ### 주요 기능
 
-- ✅ 자연어를 SQL로 자동 변환
+- ✅ **로컬 LLM (Ollama)** 기반 자연어를 SQL로 자동 변환
+- ✅ **MyBatis** 기반 데이터베이스 매핑
 - ✅ 제조 도메인 특화 (제품, 재고, 생산오더, 작업오더)
 - ✅ 실시간 쿼리 실행 및 결과 표시
 - ✅ 생성된 SQL 쿼리 확인 가능
-- ✅ 다양한 예제 쿼리 제공
+- ✅ Ollama 연결 상태 실시간 모니터링
+- ✅ 완전한 로컬 실행 (인터넷 불필요)
 
 ### 기술 스택
 
 **백엔드:**
 - Spring Boot 3.2.0
 - Java 17
+- **MyBatis 3.0.3** (SQL 매퍼)
 - PostgreSQL
-- JPA/Hibernate
+- **Ollama** (로컬 LLM)
+- OkHttp (Ollama API 통신)
 - Maven
 
 **프론트엔드:**
@@ -29,6 +33,10 @@ Spring Boot, React, PostgreSQL을 이용한 자연어 기반 제조 데이터베
 - Axios
 - Modern CSS
 
+**AI/LLM:**
+- Ollama (llama3.2:3b 기본 모델)
+- 완전한 로컬 실행
+
 ## 🚀 시작하기
 
 ### 사전 요구사항
@@ -36,9 +44,38 @@ Spring Boot, React, PostgreSQL을 이용한 자연어 기반 제조 데이터베
 - Java 17 이상
 - Node.js 16 이상
 - PostgreSQL 12 이상
+- **Ollama** (로컬 LLM 서버)
 - Maven 3.6 이상
 
-### 1. PostgreSQL 데이터베이스 설정
+### 1. Ollama 설치 및 모델 다운로드
+
+#### macOS / Linux:
+```bash
+# Ollama 설치
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Ollama 서비스 시작
+ollama serve
+
+# 새 터미널에서 모델 다운로드
+ollama pull llama3.2:3b
+```
+
+#### Windows:
+1. https://ollama.com/download 에서 Ollama 설치
+2. 설치 후 자동으로 서비스 시작됨
+3. PowerShell에서 모델 다운로드:
+```powershell
+ollama pull llama3.2:3b
+```
+
+#### Docker로 Ollama 실행:
+```bash
+docker run -d -p 11434:11434 --name ollama ollama/ollama
+docker exec -it ollama ollama pull llama3.2:3b
+```
+
+### 2. PostgreSQL 데이터베이스 설정
 
 ```bash
 # PostgreSQL 접속
@@ -46,10 +83,6 @@ psql -U postgres
 
 # 데이터베이스 생성
 CREATE DATABASE manufacturing_db;
-
-# 사용자 생성 (선택사항)
-CREATE USER dbuser WITH PASSWORD 'dbpassword';
-GRANT ALL PRIVILEGES ON DATABASE manufacturing_db TO dbuser;
 ```
 
 또는 Docker로 PostgreSQL 실행:
@@ -63,7 +96,7 @@ docker run --name postgres-mfg \
   -d postgres:15
 ```
 
-### 2. 백엔드 실행
+### 3. 백엔드 실행
 
 ```bash
 cd backend
@@ -79,7 +112,7 @@ java -jar target/nlp-sql-query-1.0.0.jar
 
 백엔드는 `http://localhost:8080`에서 실행됩니다.
 
-### 3. 프론트엔드 실행
+### 4. 프론트엔드 실행
 
 ```bash
 cd frontend
@@ -93,21 +126,43 @@ npm run dev
 
 프론트엔드는 `http://localhost:3000`에서 실행됩니다.
 
+## 🐳 Docker Compose로 전체 스택 실행 (권장)
+
+가장 쉬운 방법입니다:
+
+```bash
+# 모든 서비스 시작 (PostgreSQL + Ollama + Backend + Frontend)
+docker-compose up -d
+
+# Ollama 모델 다운로드 (최초 1회)
+docker exec -it manufacturing-ollama ollama pull llama3.2:3b
+
+# 로그 확인
+docker-compose logs -f
+
+# 브라우저에서 http://localhost:3000 접속
+```
+
+서비스 중지:
+```bash
+docker-compose down
+```
+
 ## 🎯 사용 방법
 
 ### 지원되는 자연어 쿼리 예제
 
 #### 기본 조회
 - "모든 제품 보여줘"
-- "모든 재고 조회"
-- "생산오더 전체 보여줘"
+- "재고 전체 조회"
+- "생산오더 목록"
 
 #### 조건부 조회
 - "재고가 부족한 제품은?"
 - "완료된 생산오더 보여줘"
 - "진행중인 작업오더는?"
 - "카테고리가 전자부품인 제품 조회"
-- "창고가 A창고인 재고 보여줘"
+- "A창고에 있는 재고 보여줘"
 
 #### 집계 쿼리
 - "제품 개수는?"
@@ -115,63 +170,101 @@ npm run dev
 - "재고 수량 합계는?"
 - "제품 가격 평균은?"
 - "카테고리별 제품 개수"
-- "상태별 생산오더 개수"
 
 #### 정렬 및 제한
-- "재고 수량 내림차순으로 정렬"
-- "가격이 높은 제품 10개만 보여줘"
-- "최근 생성된 생산오더 5개"
+- "재고 수량이 많은 순으로 10개 보여줘"
+- "가격이 높은 제품 5개"
 
-#### 날짜 조건
-- "오늘 생성된 생산오더는?"
-- "이번주 생성된 제품은?"
-- "이번달 생산오더 조회"
-
-## 📊 데이터베이스 스키마
+## 📊 데이터베이스 스키마 (MyBatis)
 
 ### Products (제품)
-- `id`: 제품 ID
-- `product_code`: 제품 코드
-- `product_name`: 제품명
-- `category`: 카테고리
-- `unit_price`: 단가
-- `unit`: 단위
+```sql
+CREATE TABLE products (
+    id BIGSERIAL PRIMARY KEY,
+    product_code VARCHAR(50) UNIQUE NOT NULL,
+    product_name VARCHAR(200) NOT NULL,
+    category VARCHAR(100),
+    description TEXT,
+    unit_price DECIMAL(10, 2),
+    unit VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
 ### Inventory (재고)
-- `id`: 재고 ID
-- `product_id`: 제품 ID (FK)
-- `warehouse`: 창고명
-- `quantity`: 수량
-- `min_quantity`: 최소 재고량
-- `max_quantity`: 최대 재고량
+```sql
+CREATE TABLE inventory (
+    id BIGSERIAL PRIMARY KEY,
+    product_id BIGINT NOT NULL REFERENCES products(id),
+    warehouse VARCHAR(100) NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 0,
+    min_quantity INTEGER,
+    max_quantity INTEGER,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
 ### Production_Orders (생산오더)
-- `id`: 오더 ID
-- `order_number`: 오더 번호
-- `product_id`: 제품 ID (FK)
-- `quantity`: 수량
-- `status`: 상태 (PLANNED, IN_PROGRESS, COMPLETED, CANCELLED)
-- `start_date`: 시작일
-- `due_date`: 마감일
-- `completed_date`: 완료일
+```sql
+CREATE TABLE production_orders (
+    id BIGSERIAL PRIMARY KEY,
+    order_number VARCHAR(50) UNIQUE NOT NULL,
+    product_id BIGINT NOT NULL REFERENCES products(id),
+    quantity INTEGER NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    start_date DATE,
+    due_date DATE,
+    completed_date DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
 ### Work_Orders (작업오더)
-- `id`: 작업오더 ID
-- `work_order_number`: 작업오더 번호
-- `production_order_id`: 생산오더 ID (FK)
-- `workstation`: 작업장
-- `operation`: 작업
-- `planned_hours`: 계획 시간
-- `actual_hours`: 실제 시간
-- `status`: 상태 (PENDING, IN_PROGRESS, COMPLETED, ON_HOLD)
-- `assigned_to`: 담당자
+```sql
+CREATE TABLE work_orders (
+    id BIGSERIAL PRIMARY KEY,
+    work_order_number VARCHAR(50) UNIQUE NOT NULL,
+    production_order_id BIGINT NOT NULL REFERENCES production_orders(id),
+    workstation VARCHAR(100) NOT NULL,
+    operation VARCHAR(200) NOT NULL,
+    planned_hours INTEGER NOT NULL,
+    actual_hours INTEGER,
+    status VARCHAR(20) NOT NULL,
+    assigned_to VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
 
 ## 🔧 설정 변경
 
+### Ollama 모델 변경
+
+`backend/src/main/resources/application.yml`:
+```yaml
+ollama:
+  base-url: http://localhost:11434
+  model: llama3.2:3b  # 다른 모델로 변경 가능
+  timeout: 120
+```
+
+사용 가능한 모델:
+- `llama3.2:1b` - 가장 빠름, 작은 메모리
+- `llama3.2:3b` - 균형잡힌 성능 (기본값, 권장)
+- `llama3.1:8b` - 더 높은 정확도
+- `codellama:7b` - 코드/SQL 특화
+- `mistral:7b` - 대안 모델
+
+모델 변경 후:
+```bash
+ollama pull <모델명>
+```
+
 ### 데이터베이스 연결 설정
 
-`backend/src/main/resources/application.yml` 파일에서 데이터베이스 연결 정보를 수정할 수 있습니다:
-
+`backend/src/main/resources/application.yml`:
 ```yaml
 spring:
   datasource:
@@ -180,102 +273,136 @@ spring:
     password: postgres
 ```
 
-### 포트 변경
+### MyBatis 설정
 
-**백엔드 포트:** `application.yml`의 `server.port` 수정
-
-**프론트엔드 포트:** `frontend/vite.config.js`의 `server.port` 수정
-
-## 🐳 Docker로 실행하기
-
-전체 스택을 Docker Compose로 실행:
-
-```bash
-docker-compose up -d
+`backend/src/main/resources/application.yml`:
+```yaml
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.manufacturing.nlpsql.model
+  configuration:
+    map-underscore-to-camel-case: true
 ```
-
-서비스 URL:
-- 프론트엔드: http://localhost:3000
-- 백엔드 API: http://localhost:8080/api
-- PostgreSQL: localhost:5432
 
 ## 🧪 API 엔드포인트
 
 ### POST /api/query/execute
-자연어 쿼리 실행
+자연어 쿼리 실행 (LLM 사용)
 
 **Request:**
 ```json
 {
-  "naturalLanguageQuery": "모든 제품 보여줘"
+  "naturalLanguageQuery": "재고가 부족한 제품 보여줘"
 }
 ```
 
 **Response:**
 ```json
 {
-  "naturalLanguageQuery": "모든 제품 보여줘",
-  "generatedSql": "SELECT * FROM products",
+  "naturalLanguageQuery": "재고가 부족한 제품 보여줘",
+  "generatedSql": "SELECT * FROM inventory LEFT JOIN products ON inventory.product_id = products.id WHERE inventory.quantity < inventory.min_quantity",
   "results": [...],
-  "rowCount": 8,
-  "executionTime": "45ms"
+  "rowCount": 1,
+  "executionTime": "234ms"
 }
 ```
 
 ### GET /api/query/examples
 예제 쿼리 목록 조회
 
-## 📝 NLP to SQL 변환 규칙
+### GET /api/query/status
+Ollama 연결 상태 확인
 
-시스템은 다음과 같은 규칙 기반 변환을 사용합니다:
+**Response:**
+```json
+{
+  "ollama_available": true,
+  "status": "ready",
+  "message": "로컬 LLM(Ollama)이 정상적으로 연결되었습니다."
+}
+```
 
-1. **테이블 식별**: 키워드로 대상 테이블 결정 (제품, 재고, 생산, 작업)
-2. **집계 함수**: "개수", "합계", "평균" 등의 키워드로 집계 함수 적용
-3. **조건 절**: 상태, 카테고리, 수량 등의 조건 파싱
-4. **정렬**: "정렬", "내림차순", "오름차순" 키워드 처리
-5. **제한**: "10개", "top 5" 등의 LIMIT 절 처리
+## 💡 로컬 LLM 작동 원리
+
+1. **사용자 입력**: "재고가 부족한 제품은?"
+2. **프롬프트 생성**: 데이터베이스 스키마 정보 + 자연어 질의를 포함한 프롬프트
+3. **Ollama API 호출**: 로컬 LLM이 SQL 생성
+4. **SQL 검증**: 보안 검증 (SELECT만 허용)
+5. **쿼리 실행**: MyBatis를 통해 PostgreSQL 실행
+6. **결과 반환**: JSON 형태로 프론트엔드에 전달
+
+## 🔒 보안 기능
+
+- ✅ SELECT 쿼리만 허용
+- ✅ 위험한 SQL 명령어 차단 (DROP, DELETE, UPDATE, INSERT 등)
+- ✅ SQL 인젝션 방지
+- ✅ 완전한 로컬 실행 (외부 API 호출 없음)
 
 ## 🛠️ 개발
 
 ### 백엔드 개발
-
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-핫 리로드가 활성화되어 있어 코드 변경 시 자동으로 재시작됩니다.
+주요 파일:
+- `OllamaService.java` - Ollama API 통신
+- `LlmNlpToSqlService.java` - LLM 기반 SQL 생성
+- `mapper/*.xml` - MyBatis SQL 매핑
+- `model/*.java` - 데이터 모델
 
 ### 프론트엔드 개발
-
 ```bash
 cd frontend
 npm run dev
 ```
 
-Vite의 HMR(Hot Module Replacement)로 빠른 개발이 가능합니다.
+Vite의 HMR로 빠른 개발이 가능합니다.
 
 ## 📦 프로덕션 빌드
 
-### 백엔드
 ```bash
-cd backend
-./mvnw clean package
-java -jar target/nlp-sql-query-1.0.0.jar
+# Docker Compose로 전체 빌드
+docker-compose up --build -d
 ```
 
-### 프론트엔드
+## 🎓 학습 자료
+
+- [Ollama 공식 문서](https://ollama.com/)
+- [MyBatis 공식 문서](https://mybatis.org/mybatis-3/)
+- [Spring Boot 가이드](https://spring.io/guides)
+
+## 🐛 문제 해결
+
+### Ollama 연결 오류
 ```bash
-cd frontend
-npm run build
-npm run preview
+# Ollama 상태 확인
+curl http://localhost:11434/api/tags
+
+# Ollama 재시작
+ollama serve
 ```
 
-## 🤝 기여
+### 모델 다운로드 문제
+```bash
+# 모델 확인
+ollama list
 
-이슈와 풀 리퀘스트를 환영합니다!
+# 모델 재다운로드
+ollama pull llama3.2:3b
+```
 
-## 📄 라이선스
+### PostgreSQL 연결 오류
+```bash
+# PostgreSQL 상태 확인
+docker ps | grep postgres
+
+# 로그 확인
+docker logs manufacturing-postgres
+```
+
+## 📝 라이선스
 
 MIT License
 

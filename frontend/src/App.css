@@ -27,6 +27,32 @@
 .header p {
   font-size: 1.2rem;
   opacity: 0.9;
+  margin-bottom: 15px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.status-badge.ready {
+  background: rgba(76, 175, 80, 0.3);
+  border: 1px solid rgba(76, 175, 80, 0.5);
+}
+
+.status-badge.ollama_unavailable,
+.status-badge.offline {
+  background: rgba(244, 67, 54, 0.3);
+  border: 1px solid rgba(244, 67, 54, 0.5);
+}
+
+.status-icon {
+  margin-right: 5px;
 }
 
 .main-content {

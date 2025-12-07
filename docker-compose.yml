@@ -20,6 +20,22 @@ services:
       timeout: 5s
       retries: 5
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: manufacturing-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - manufacturing-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   backend:
     build:
       context: ./backend
@@ -29,10 +45,14 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/manufacturing_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: llama3.2:3b
     ports:
       - "8080:8080"
     depends_on:
       postgres:
+        condition: service_healthy
+      ollama:
         condition: service_healthy
     networks:
       - manufacturing-network
@@ -53,6 +73,7 @@ services:
 
 volumes:
   postgres_data:
+  ollama_data:
 
 networks:
   manufacturing-network:

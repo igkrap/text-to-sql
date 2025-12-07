@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.manufacturing.nlpsql.mapper.ProductMapper">
+
+    <resultMap id="ProductResultMap" type="com.manufacturing.nlpsql.model.Product">
+        <id property="id" column="id"/>
+        <result property="productCode" column="product_code"/>
+        <result property="productName" column="product_name"/>
+        <result property="category" column="category"/>
+        <result property="description" column="description"/>
+        <result property="unitPrice" column="unit_price"/>
+        <result property="unit" column="unit"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="ProductResultMap">
+        SELECT * FROM products ORDER BY id
+    </select>
+
+    <select id="findById" resultMap="ProductResultMap">
+        SELECT * FROM products WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO products (product_code, product_name, category, description, unit_price, unit, created_at, updated_at)
+        VALUES (#{productCode}, #{productName}, #{category}, #{description}, #{unitPrice}, #{unit}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE products
+        SET product_code = #{productCode},
+            product_name = #{productName},
+            category = #{category},
+            description = #{description},
+            unit_price = #{unitPrice},
+            unit = #{unit},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM products WHERE id = #{id}
+    </delete>
+
+</mapper>

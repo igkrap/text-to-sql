@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.manufacturing.nlpsql.mapper.InventoryMapper">
+
+    <resultMap id="InventoryResultMap" type="com.manufacturing.nlpsql.model.Inventory">
+        <id property="id" column="id"/>
+        <result property="productId" column="product_id"/>
+        <result property="warehouse" column="warehouse"/>
+        <result property="quantity" column="quantity"/>
+        <result property="minQuantity" column="min_quantity"/>
+        <result property="maxQuantity" column="max_quantity"/>
+        <result property="lastUpdated" column="last_updated"/>
+        <result property="productName" column="product_name"/>
+        <result property="productCode" column="product_code"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="InventoryResultMap">
+        SELECT i.*, p.product_name, p.product_code
+        FROM inventory i
+        LEFT JOIN products p ON i.product_id = p.id
+        ORDER BY i.id
+    </select>
+
+    <select id="findById" resultMap="InventoryResultMap">
+        SELECT i.*, p.product_name, p.product_code
+        FROM inventory i
+        LEFT JOIN products p ON i.product_id = p.id
+        WHERE i.id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO inventory (product_id, warehouse, quantity, min_quantity, max_quantity, last_updated)
+        VALUES (#{productId}, #{warehouse}, #{quantity}, #{minQuantity}, #{maxQuantity}, NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE inventory
+        SET product_id = #{productId},
+            warehouse = #{warehouse},
+            quantity = #{quantity},
+            min_quantity = #{minQuantity},
+            max_quantity = #{maxQuantity},
+            last_updated = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM inventory WHERE id = #{id}
+    </delete>
+
+</mapper>

@@ -7,9 +7,11 @@ function App() {
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [examples, setExamples] = useState([]);
+  const [status, setStatus] = useState(null);
 
   useEffect(() => {
     fetchExamples();
+    checkStatus();
   }, []);
 
   const fetchExamples = async () => {
@@ -18,6 +20,19 @@ function App() {
       setExamples(res.data);
     } catch (error) {
       console.error('예제 로드 실패:', error);
+    }
+  };
+
+  const checkStatus = async () => {
+    try {
+      const res = await axios.get('http://localhost:8080/api/query/status');
+      setStatus(res.data);
+    } catch (error) {
+      console.error('상태 확인 실패:', error);
+      setStatus({
+        status: 'offline',
+        message: '백엔드 서버에 연결할 수 없습니다.'
+      });
     }
   };
 
@@ -89,7 +104,16 @@ function App() {
       <div className="container">
         <header className="header">
           <h1>🏭 제조 NLP SQL 질의 시스템</h1>
-          <p>자연어로 제조 데이터베이스를 질의하세요</p>
+          <p>자연어로 제조 데이터베이스를 질의하세요 (로컬 LLM Powered)</p>
+          {status && (
+            <div className={`status-badge ${status.status}`}>
+              {status.ollama_available ? (
+                <><span className="status-icon">🟢</span> Ollama 연결됨</>
+              ) : (
+                <><span className="status-icon">🔴</span> Ollama 연결 안됨</>
+              )}
+            </div>
+          )}
         </header>
 
         <div className="main-content">

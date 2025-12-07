@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.manufacturing.nlpsql.mapper.WorkOrderMapper">
+
+    <resultMap id="WorkOrderResultMap" type="com.manufacturing.nlpsql.model.WorkOrder">
+        <id property="id" column="id"/>
+        <result property="workOrderNumber" column="work_order_number"/>
+        <result property="productionOrderId" column="production_order_id"/>
+        <result property="workstation" column="workstation"/>
+        <result property="operation" column="operation"/>
+        <result property="plannedHours" column="planned_hours"/>
+        <result property="actualHours" column="actual_hours"/>
+        <result property="status" column="status"/>
+        <result property="assignedTo" column="assigned_to"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="orderNumber" column="order_number"/>
+        <result property="productName" column="product_name"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="WorkOrderResultMap">
+        SELECT wo.*, po.order_number, p.product_name
+        FROM work_orders wo
+        LEFT JOIN production_orders po ON wo.production_order_id = po.id
+        LEFT JOIN products p ON po.product_id = p.id
+        ORDER BY wo.id
+    </select>
+
+    <select id="findById" resultMap="WorkOrderResultMap">
+        SELECT wo.*, po.order_number, p.product_name
+        FROM work_orders wo
+        LEFT JOIN production_orders po ON wo.production_order_id = po.id
+        LEFT JOIN products p ON po.product_id = p.id
+        WHERE wo.id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO work_orders (work_order_number, production_order_id, workstation, operation, planned_hours, actual_hours, status, assigned_to, created_at, updated_at)
+        VALUES (#{workOrderNumber}, #{productionOrderId}, #{workstation}, #{operation}, #{plannedHours}, #{actualHours}, #{status}, #{assignedTo}, NOW(), NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE work_orders
+        SET work_order_number = #{workOrderNumber},
+            production_order_id = #{productionOrderId},
+            workstation = #{workstation},
+            operation = #{operation},
+            planned_hours = #{plannedHours},
+            actual_hours = #{actualHours},
+            status = #{status},
+            assigned_to = #{assignedTo},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM work_orders WHERE id = #{id}
+    </delete>
+
+</mapper>

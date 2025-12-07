@@ -2,12 +2,13 @@ package com.manufacturing.nlpsql.controller;
 
 import com.manufacturing.nlpsql.dto.QueryRequest;
 import com.manufacturing.nlpsql.dto.QueryResponse;
-import com.manufacturing.nlpsql.service.NlpToSqlService;
+import com.manufacturing.nlpsql.service.LlmNlpToSqlService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class QueryController {
 
-    private final NlpToSqlService nlpToSqlService;
+    private final LlmNlpToSqlService llmNlpToSqlService;
 
     @PostMapping("/execute")
     public ResponseEntity<QueryResponse> executeQuery(@RequestBody QueryRequest request) {
@@ -28,12 +29,12 @@ public class QueryController {
             String nlQuery = request.getNaturalLanguageQuery();
             log.info("자연어 쿼리: {}", nlQuery);
 
-            // NLP to SQL 변환
-            String sql = nlpToSqlService.convertToSql(nlQuery);
+            // LLM을 사용한 NLP to SQL 변환
+            String sql = llmNlpToSqlService.convertToSql(nlQuery);
             log.info("생성된 SQL: {}", sql);
 
             // SQL 실행
-            List<Map<String, Object>> results = nlpToSqlService.executeQuery(sql);
+            List<Map<String, Object>> results = llmNlpToSqlService.executeQuery(sql);
 
             long endTime = System.currentTimeMillis();
             String executionTime = (endTime - startTime) + "ms";
@@ -67,5 +68,19 @@ public class QueryController {
             "재고 수량 내림차순으로 10개만 보여줘"
         );
         return ResponseEntity.ok(examples);
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getStatus() {
+        Map<String, Object> status = new HashMap<>();
+        boolean ollamaAvailable = llmNlpToSqlService.isOllamaAvailable();
+
+        status.put("ollama_available", ollamaAvailable);
+        status.put("status", ollamaAvailable ? "ready" : "ollama_unavailable");
+        status.put("message", ollamaAvailable ?
+            "로컬 LLM(Ollama)이 정상적으로 연결되었습니다." :
+            "Ollama 서버에 연결할 수 없습니다. Ollama가 실행중인지 확인해주세요.");
+
+        return ResponseEntity.ok(status);
     }
 }
